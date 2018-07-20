@@ -94,7 +94,7 @@
 /* GPIO upper 16 bit mask */
 #define ZYNQ_GPIO_UPPER_MASK 0xFFFF0000
 
-struct zynq_gpio_privdata {
+struct zynq_gpio_platdata {
 	phys_addr_t base;
 	const struct zynq_platform_data *p_data;
 };
@@ -163,20 +163,20 @@ static inline void zynq_gpio_get_bank_pin(unsigned int pin_num,
 					  unsigned int *bank_pin_num,
 					  struct udevice *dev)
 {
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
-	int bank;
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
+	u32 bank;
 
-	for (bank = 0; bank < priv->p_data->max_bank; bank++) {
-		if ((pin_num >= priv->p_data->bank_min[bank]) &&
-		    (pin_num <= priv->p_data->bank_max[bank])) {
-				*bank_num = bank;
-				*bank_pin_num = pin_num -
-						priv->p_data->bank_min[bank];
-				return;
+	for (bank = 0; bank < platdata->p_data->max_bank; bank++) {
+		if (pin_num >= platdata->p_data->bank_min[bank] &&
+		    pin_num <= platdata->p_data->bank_max[bank]) {
+			*bank_num = bank;
+			*bank_pin_num = pin_num -
+					platdata->p_data->bank_min[bank];
+			return;
 		}
 	}
 
-	if (bank >= priv->p_data->max_bank) {
+	if (bank >= platdata->p_data->max_bank) {
 		printf("Invalid bank and pin num\n");
 		*bank_num = 0;
 		*bank_pin_num = 0;
@@ -185,9 +185,9 @@ static inline void zynq_gpio_get_bank_pin(unsigned int pin_num,
 
 static int gpio_is_valid(unsigned gpio, struct udevice *dev)
 {
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
-	return gpio < priv->p_data->ngpio;
+	return gpio < platdata->p_data->ngpio;
 }
 
 static int check_gpio(unsigned gpio, struct udevice *dev)
@@ -203,14 +203,14 @@ static int zynq_gpio_get_value(struct udevice *dev, unsigned gpio)
 {
 	u32 data;
 	unsigned int bank_num, bank_pin_num;
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
 	if (check_gpio(gpio, dev) < 0)
 		return -1;
 
 	zynq_gpio_get_bank_pin(gpio, &bank_num, &bank_pin_num, dev);
 
-	data = readl(priv->base +
+	data = readl(platdata->base +
 			     ZYNQ_GPIO_DATA_RO_OFFSET(bank_num));
 
 	return (data >> bank_pin_num) & 1;
@@ -219,7 +219,7 @@ static int zynq_gpio_get_value(struct udevice *dev, unsigned gpio)
 static int zynq_gpio_set_value(struct udevice *dev, unsigned gpio, int value)
 {
 	unsigned int reg_offset, bank_num, bank_pin_num;
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
 	if (check_gpio(gpio, dev) < 0)
 		return -1;
@@ -242,7 +242,7 @@ static int zynq_gpio_set_value(struct udevice *dev, unsigned gpio, int value)
 	value = ~(1 << (bank_pin_num + ZYNQ_GPIO_MID_PIN_NUM)) &
 		((value << bank_pin_num) | ZYNQ_GPIO_UPPER_MASK);
 
-	writel(value, priv->base + reg_offset);
+	writel(value, platdata->base + reg_offset);
 
 	return 0;
 }
@@ -251,7 +251,7 @@ static int zynq_gpio_direction_input(struct udevice *dev, unsigned gpio)
 {
 	u32 reg;
 	unsigned int bank_num, bank_pin_num;
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
 	if (check_gpio(gpio, dev) < 0)
 		return -1;
@@ -263,9 +263,9 @@ static int zynq_gpio_direction_input(struct udevice *dev, unsigned gpio)
 		return -1;
 
 	/* clear the bit in direction mode reg to set the pin as input */
-	reg = readl(priv->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
+	reg = readl(platdata->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
 	reg &= ~BIT(bank_pin_num);
-	writel(reg, priv->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
+	writel(reg, platdata->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
 
 	return 0;
 }
@@ -275,7 +275,7 @@ static int zynq_gpio_direction_output(struct udevice *dev, unsigned gpio,
 {
 	u32 reg;
 	unsigned int bank_num, bank_pin_num;
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
 	if (check_gpio(gpio, dev) < 0)
 		return -1;
@@ -283,14 +283,14 @@ static int zynq_gpio_direction_output(struct udevice *dev, unsigned gpio,
 	zynq_gpio_get_bank_pin(gpio, &bank_num, &bank_pin_num, dev);
 
 	/* set the GPIO pin as output */
-	reg = readl(priv->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
+	reg = readl(platdata->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
 	reg |= BIT(bank_pin_num);
-	writel(reg, priv->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
+	writel(reg, platdata->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
 
 	/* configure the output enable reg for the pin */
-	reg = readl(priv->base + ZYNQ_GPIO_OUTEN_OFFSET(bank_num));
+	reg = readl(platdata->base + ZYNQ_GPIO_OUTEN_OFFSET(bank_num));
 	reg |= BIT(bank_pin_num);
-	writel(reg, priv->base + ZYNQ_GPIO_OUTEN_OFFSET(bank_num));
+	writel(reg, platdata->base + ZYNQ_GPIO_OUTEN_OFFSET(bank_num));
 
 	/* set the state of the pin */
 	gpio_set_value(gpio, value);
@@ -301,7 +301,7 @@ static int zynq_gpio_get_function(struct udevice *dev, unsigned offset)
 {
 	u32 reg;
 	unsigned int bank_num, bank_pin_num;
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
 	if (check_gpio(offset, dev) < 0)
 		return -1;
@@ -309,7 +309,7 @@ static int zynq_gpio_get_function(struct udevice *dev, unsigned offset)
 	zynq_gpio_get_bank_pin(offset, &bank_num, &bank_pin_num, dev);
 
 	/* set the GPIO pin as output */
-	reg = readl(priv->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
+	reg = readl(platdata->base + ZYNQ_GPIO_DIRM_OFFSET(bank_num));
 	reg &= BIT(bank_pin_num);
 	if (reg)
 		return GPIOF_OUTPUT;
@@ -335,24 +335,25 @@ static const struct udevice_id zynq_gpio_ids[] = {
 
 static int zynq_gpio_probe(struct udevice *dev)
 {
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 	struct gpio_dev_priv *uc_priv = dev_get_uclass_priv(dev);
 
 	uc_priv->bank_name = dev->name;
 
-	if (priv->p_data)
-		uc_priv->gpio_count = priv->p_data->ngpio;
+	if (platdata->p_data)
+		uc_priv->gpio_count = platdata->p_data->ngpio;
 
 	return 0;
 }
 
 static int zynq_gpio_ofdata_to_platdata(struct udevice *dev)
 {
-	struct zynq_gpio_privdata *priv = dev_get_priv(dev);
+	struct zynq_gpio_platdata *platdata = dev_get_platdata(dev);
 
-	priv->base = devfdt_get_addr(dev);
+	platdata->base = (phys_addr_t)dev_read_addr(dev);
 
-	priv->p_data = (struct zynq_platform_data *)dev_get_driver_data(dev);
+	platdata->p_data =
+		(struct zynq_platform_data *)dev_get_driver_data(dev);
 
 	return 0;
 }
@@ -364,5 +365,5 @@ U_BOOT_DRIVER(gpio_zynq) = {
 	.of_match = zynq_gpio_ids,
 	.ofdata_to_platdata = zynq_gpio_ofdata_to_platdata,
 	.probe	= zynq_gpio_probe,
-	.priv_auto_alloc_size = sizeof(struct zynq_gpio_privdata),
+	.platdata_auto_alloc_size = sizeof(struct zynq_gpio_platdata),
 };
