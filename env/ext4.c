@@ -61,7 +61,8 @@ static int env_ext4_save(void)
 		return 1;
 	}
 
-	err = ext4fs_write(EXT4_ENV_FILE, (void *)&env_new, sizeof(env_t));
+	err = ext4fs_write(EXT4_ENV_FILE, (void *)&env_new,
+			   sizeof(env_t), FILETYPE_REG);
 	ext4fs_close();
 
 	if (err == -1) {
