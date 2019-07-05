@@ -183,10 +183,10 @@ static void arasan_sdhci_set_tapdelay(struct sdhci_host *host)
 
 	if (mmc->is_uhs)
 		uhsmode = mmc->uhsmode;
-	else if (mmc->card_caps & MMC_MODE_HS)
-		uhsmode = MMC_TIMING_HS;
 	else if (mmc->card_caps & MMC_MODE_HS200)
 		uhsmode = MMC_TIMING_HS200;
+	else if (mmc->card_caps & MMC_MODE_HS)
+		uhsmode = MMC_TIMING_HS;
 	else
 		return;
 
