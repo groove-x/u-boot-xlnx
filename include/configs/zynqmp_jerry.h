@@ -44,11 +44,18 @@
 	"uenvtxt_existence_test=test -e mmc $sdbootdev:$partid /uEnv.txt\0" \
 	"bootenv=uEnv.txt\0" \
 	"loadbootenv=load mmc $sdbootdev:$partid ${loadbootenv_addr} ${bootenv}\0" \
+	"factory_existence_test=test -e mmc $sdbootdev:$factory_partid $factory\0" \
+	"factory_partid=8\0" \
+	"factory=/opt/lovot/device/tags/u-boot\0" \
+	"loadfactory=load mmc $sdbootdev:$factory_partid ${loadbootenv_addr} ${factory}\0" \
+	"append_factory=" \
+		"setenv bootargs $bootargs rtc-pseudo.enable=${rtc_pseudo_enable};" \
+		"setenv bootargs $bootargs rtc-zynqmp.enable=${rtc_zynqmp_enable}\0" \
 	"timestamp_existence_test=test -e mmc $sdbootdev:$timestamp_partid /${timestamp}\0" \
-    "timestamp_partid=9\0" \
+	"timestamp_partid=9\0" \
 	"timestamp=last_timestamp\0" \
 	"loadtimestamp=load mmc $sdbootdev:$timestamp_partid ${loadbootenv_addr} ${timestamp}\0" \
-    "append_timestamp=setenv bootargs $bootargs rtc-pseudo.timestamp=$last_timestamp\0" \
+	"append_timestamp=setenv bootargs $bootargs rtc-pseudo.timestamp=$last_timestamp\0" \
 	"importbootenv=echo Importing environment from SD ...; " \
 		"env import -t ${loadbootenv_addr} $filesize\0" \
 	"uenvboot=" \
@@ -65,11 +72,21 @@
 			"echo Warning: ${timestamp} is not found in mmc$sdbootdev:$timestamp_partid. Falling back to 1552102779.; " \
 			"setenv last_timestamp 1552102779; " \
 		"fi; " \
+		"if run factory_existence_test; then " \
+			"run loadfactory; " \
+			"echo Loaded factory env from ${factory}; " \
+			"run importbootenv; " \
+		"else; " \
+			"echo Warning: ${timestamp} is not found in mmc$sdbootdev:$timestamp_partid. Falling back to rtc-pseudo.; " \
+			"setenv rtc_pseudo_enable 1; " \
+			"setenv rtc_zynqmp_enable 0; " \
+		"fi; " \
 		"if test -n $uenvcmd; then " \
 			"echo Running uenvcmd ...; " \
 			"run uenvcmd; " \
 		"fi\0" \
 	"sdboot=mmc dev $sdbootdev && mmcinfo && run uenvboot || run sdroot$sdbootdev; " \
+		"run append_factory; " \
 		"run append_timestamp; " \
 		"load mmc $sdbootdev:$partid $fdt_addr system.dtb && " \
 		"load mmc $sdbootdev:$partid $kernel_addr Image && " \
