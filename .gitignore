@@ -92,3 +92,6 @@ GTAGS
 *.orig
 *~
 \#*#
+
+# gx dts
+zynqmp-jerry-*.dts
