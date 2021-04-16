@@ -155,7 +155,7 @@
 #endif
 
 #define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
-	"bootcmd_" #devtypel #instance "=sf probe " #instance " 0 0 && " \
+	"_" #devtypel #instance "=sf probe " #instance " 0 0 && " \
 		       "sf read $scriptaddr $script_offset_f $script_size_f && " \
 		       "echo QSPI: Trying to boot script at ${scriptaddr} && " \
 		       "source ${scriptaddr}; echo QSPI: SCRIPT FAILED: continuing...;\0"
