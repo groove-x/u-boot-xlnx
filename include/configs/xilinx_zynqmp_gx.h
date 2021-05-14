@@ -50,7 +50,7 @@
             "echo Running uenvcmd ...; " \
             "run uenvcmd; " \
         "fi\0" \
-    "sdboot=run uenvboot && mmc dev $sdbootdev && mmcinfo && run sdroot$sdbootdev; " \
+    "sdboot=run uenvboot || mmc dev $sdbootdev && mmcinfo && run sdroot$sdbootdev; " \
         "load mmc $sdbootdev:$partid $fdt_addr system.dtb && " \
         "load mmc $sdbootdev:$partid $kernel_addr Image && " \
         "booti $kernel_addr - $fdt_addr\0" \
