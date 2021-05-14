@@ -309,8 +309,7 @@ dtb-$(CONFIG_ARCH_ZYNQMP) += \
 	zynqmp-zc1751-xm017-dc3.dtb		\
 	zynqmp-zc1751-xm018-dc4.dtb		\
 	zynqmp-zc1751-xm019-dc5.dtb		\
-	zynqmp-gx.dtb				\
-	zynqmp-gx-nosd.dtb
+	zynqmp-gx.dtb
 dtb-$(CONFIG_ARCH_VERSAL) += \
 	versal-mini.dtb \
 	versal-mini-emmc0.dtb \
