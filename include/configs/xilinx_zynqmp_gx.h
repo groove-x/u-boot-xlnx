@@ -28,7 +28,7 @@
     "kernel_size=0x1e00000\0" \
     "fdt_size=0x80000\0" \
     "bootenv=uEnv.txt\0" \
-    "loadbootenv=load mmc $uenvdevv:$partid ${loadbootenv_addr} ${bootenv}\0" \
+    "loadbootenv=load mmc $uenvdev:$partid ${loadbootenv_addr} ${bootenv}\0" \
     "importbootenv=echo Importing environment ...; " \
         "env import -t ${loadbootenv_addr} $filesize\0" \
     "uenvexist=" \
