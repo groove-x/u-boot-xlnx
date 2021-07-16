@@ -54,7 +54,7 @@
         "load mmc $sdbootdev:$partid $fdt_addr system.dtb && " \
         "load mmc $sdbootdev:$partid $kernel_addr Image && " \
         "booti $kernel_addr - $fdt_addr\0" \
-    "emmcboot=run sdboot\0" \
+    "modeboot=sdboot\0" \
     "jtagboot=tftpboot 80000 Image && tftpboot $fdt_addr system.dtb && " \
          "tftpboot 6000000 rootfs.cpio.ub && booti 80000 6000000 $fdt_addr\0" \
     "nosmp=setenv bootargs $bootargs maxcpus=1\0" \
