@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * dts file for ZynqMP Jerry
  *
- * (C) Copyright 2018, Reglus Co., Ltd.
- * (C) Copyright 2015, Xilinx, Inc.
+ * (C) Copyright 2021 - 2021, Reglus Co., Ltd.
+ * (C) Copyright 2015 - 2020, Xilinx, Inc.
  *
  * Tetsuya Morizumi <morizumi@reglus.co.jp>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /dts-v1/;
@@ -31,11 +30,10 @@
 		serial0 = &uart0;
 		serial1 = &uart1;
 		serial2 = &dcc;
-		usb0 = &usb0;
 	};
 
 	chosen {
-		bootargs = "earlycon clk_ignore_unused";
+		bootargs = "earlycon";
 		stdout-path = "serial0:115200n8";
 	};
 
@@ -46,7 +44,7 @@
 
 	leds {
 		compatible = "gpio-leds";
-		heartbeat_led {
+		heartbeat-led {
 			label = "heartbeat";
 			gpios = <&gpio 38 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
@@ -58,7 +56,6 @@
 	status = "okay";
 };
 
-/* fpd_dma clk 600MHz, lpd_dma 500MHz */
 &fpd_dma_chan1 {
 	status = "okay";
 };
@@ -125,10 +122,6 @@
 	scl-gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
 
-	eeprom@54 {
-		compatible = "at,24c01";
-		reg = <0x54>;
-	};
 	my0228@60 { /* muRata DC-DC converter */
 		compatible = "xxx";
 		reg = <0x60>;
@@ -151,11 +144,6 @@
 	pinctrl-1 = <&pinctrl_i2c1_gpio>;
 	scl-gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
-
-	dps@48 { /* Digital Pressure Sensor */
-		compatible = "xxx";
-		reg = <0x48>;
-	};
 };
 
 &pinctrl0 {
@@ -386,43 +374,46 @@
 			slew-rate = <SLEW_RATE_SLOW>;
 			io-standard = <IO_STANDARD_LVCMOS18>;
 		};
-
-		/*
-		mux-wp {
-			groups = "sdio1_0_wp_grp";
-			function = "sdio1_wp";
-		};
-
-		conf-wp {
-			groups = "sdio1_0_wp_grp";
-			bias-high-impedance;
-			bias-pull-up;
-			slew-rate = <SLEW_RATE_SLOW>;
-			io-standard = <IO_STANDARD_LVCMOS18>;
-		};
-		*/
 	};
 
 	pinctrl_gpio_default: gpio-default {
+		mux {
+			function = "gpio0";
+			groups = "gpio0_4_grp", "gpio0_5_grp", "gpio0_6_grp", "gpio0_7_grp",
+				 "gpio0_12_grp", "gpio0_24_grp", "gpio0_25_grp",
+				 "gpio0_38_grp", "gpio0_43_grp", "gpio0_44_grp";
+		};
+
+		conf {
+			groups = "gpio0_4_grp", "gpio0_5_grp", "gpio0_6_grp", "gpio0_7_grp",
+				 "gpio0_12_grp", "gpio0_24_grp", "gpio0_25_grp",
+				 "gpio0_38_grp", "gpio0_43_grp", "gpio0_44_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-pull-none {
+			pins = "MIO4", "MIO5", "MIO38";
+			bias-disable;
+		};
+
 		conf-pull-up {
-			pins = "MIO4", "MIO5", "MIO6", "MIO7",
+			pins = "MIO6", "MIO7",
 				"MIO12", "MIO24", "MIO25",
-				"MIO38", "MIO43", "MIO44";
+				"MIO43", "MIO44";
 			bias-pull-up;
 		};
 	};
 };
 
 /* SD0 eMMC, 8-bit wide data bus */
-/* non-removable; */
-/* broken-mmc-highspeed; */
 &sdhci0 {
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sdhci0_default>;
 	bus-width = <8>;
 	max-frequency = <100000000>;
-	xlnx,mio_bank = <0>;
+	xlnx,mio-bank = <0>;
 };
 
 /* SD1 with level shifter */
@@ -432,7 +423,8 @@
 	pinctrl-0 = <&pinctrl_sdhci1_default>;
 	disable-wp;
 	no-1-8-v;
-	xlnx,mio_bank = <1>;
+	xlnx,mio-bank = <1>;
+	max-frequency = <30000000>;
 };
 
 &serdes {
