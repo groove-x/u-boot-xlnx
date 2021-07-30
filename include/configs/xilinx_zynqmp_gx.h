@@ -41,9 +41,9 @@
         "fi\0" \
     "uenvboot=" \
         "run uenvexist;" \
-        "if test $uenvboot -ne 2; then " \
+        "if test $uenvdev -ne 2; then " \
             "run loadbootenv; " \
-            "echo Loaded environment from mmc${uenvboot}/${bootenv}; " \
+            "echo Loaded environment from mmc${uenvdev}/${bootenv}; " \
             "run importbootenv; " \
         "fi; " \
         "if test -n $uenvcmd; then " \
