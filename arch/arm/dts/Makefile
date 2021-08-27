@@ -263,6 +263,7 @@ dtb-$(CONFIG_ARCH_ZYNQ) += \
 	zynq-zybo.dtb \
 	zynq-zybo-z7.dtb
 dtb-$(CONFIG_ARCH_ZYNQMP) += \
+	zynqmp-jerry.dtb			\
 	avnet-ultra96-rev1.dtb			\
 	avnet-ultrazedev-cc-v1.0-ultrazedev-som-v1.0.dtb	\
 	zynqmp-a2197-revA.dtb			\
